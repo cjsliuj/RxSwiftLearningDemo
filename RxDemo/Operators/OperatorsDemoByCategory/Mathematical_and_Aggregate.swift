@@ -19,8 +19,8 @@ extension OperatorsListVC{
         Observable.of(1, 2, 3).reduce("a", accumulator: { (aggregate, ele) -> String in
             return aggregate + String(ele)
         })
-            .subscribe{ print($0) }
-            .disposed(by: disposeBag)
+        .subscribe{ print($0) }
+        .disposed(by: disposeBag)
     }
     /*
      将多个序列合并，最终序列按顺序发射各个序列发射的数据。

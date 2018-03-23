@@ -16,11 +16,10 @@ extension OperatorsListVC{
     //将原始序列发射的数据进行一次转换，然后在最终序列中发射。
     func `map`(){
         logFunc(#function)
-        let disposeBag = DisposeBag()
         Observable.of(1, 2, 3)
             .map { String($0)+"a" }
             .subscribe({ print($0) })
-            .disposed(by: disposeBag)
+            .disposed(by: GlobalDisposeBag)
     }
     /*
      将原始序列发射的数据变换成序列，最终序列上发射的是这些变换序列发射的数据。

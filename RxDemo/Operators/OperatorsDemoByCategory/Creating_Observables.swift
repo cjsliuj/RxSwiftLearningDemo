@@ -13,7 +13,7 @@ import RxSwift
  这些操作符用于创建序列
  */
 extension OperatorsListVC{
-    //创建不发射数据也不会终止的序列
+    //创建既不发射数据也不会终止的序列
     func never(){
         logFunc(#function)
         Observable<String>.never()
@@ -91,7 +91,7 @@ extension OperatorsListVC{
      */
     func range(){
         logFunc(#function)
-        Observable<Int>.range(start: 1, count: 10)
+        Observable<Int>.range(start: 1, count: 5)
             .subscribe { print($0) }
             .disposed(by: GlobalDisposeBag)
     }
@@ -155,8 +155,9 @@ extension OperatorsListVC{
     //创建一个序列，它会在指定延迟后根据指定的时间间隔无限发射递增整数数据。
     func timer(){
         logFunc(#function)
-        Observable<Int>.timer(2, period: 1,scheduler: MainScheduler.asyncInstance)
-            .subscribe{print($0)}
+        let seq = Observable<Int>.timer(2, period: 1,scheduler: MainScheduler.asyncInstance)
+        print("订阅 time:",Date())
+        seq.subscribe{print("收到事件:",$0,"time:",Date())}
             .disposed(by: GlobalDisposeBag)
     }
 }

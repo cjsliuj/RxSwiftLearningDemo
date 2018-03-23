@@ -17,7 +17,7 @@ extension OperatorsListVC{
      */
     func toArray(){
         logFunc(#function)
-        let _ = Observable<Int>.create { (observer) -> Disposable in
+        let seq = Observable<Int>.create { (observer) -> Disposable in
             var i = 1
             Timer.scheduledTimer(withTimeInterval: 1, repeats: true, block: { (timer) in
                 if i <= 4{
@@ -30,7 +30,8 @@ extension OperatorsListVC{
             }).fire()
             return Disposables.create()
             }.toArray()
-            .subscribe{print($0)}
+        print("开始订阅, time:", Date())
+        seq.subscribe{print("接收到数据: ",$0," time: ",Date())}.disposed(by: GlobalDisposeBag)
     }
 }
 

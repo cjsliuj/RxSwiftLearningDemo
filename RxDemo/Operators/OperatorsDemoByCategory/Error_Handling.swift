@@ -16,13 +16,12 @@ extension OperatorsListVC{
      */
     func catchErrorJustReturn(){
         logFunc(#function)
-        let disposeBag = DisposeBag()
         let sequenceThatFails = PublishSubject<String>()
         
         sequenceThatFails
             .catchErrorJustReturn("Catch it")
             .subscribe { print($0) }
-            .disposed(by: disposeBag)
+            .disposed(by: GlobalDisposeBag)
         
         sequenceThatFails.onNext("1")
         sequenceThatFails.onNext("2")
@@ -35,7 +34,6 @@ extension OperatorsListVC{
      */
     func catchError(){
         logFunc(#function)
-        let disposeBag = DisposeBag()
         let sequenceThatFails = PublishSubject<String>()
         let recoverySequence = PublishSubject<String>()
         
@@ -44,7 +42,7 @@ extension OperatorsListVC{
                 return recoverySequence
             }
             .subscribe { print($0) }
-            .disposed(by: disposeBag)
+            .disposed(by: GlobalDisposeBag)
         
         sequenceThatFails.onNext("1")
         sequenceThatFails.onNext("2")
@@ -57,9 +55,7 @@ extension OperatorsListVC{
     //当序列发出 error 事件后，会重新订阅序列，以让该序列重新发射数据。
     func retry(){
         logFunc(#function)
-        let disposeBag = DisposeBag()
         var count = 1
-        
         let sequenceThatErrors = Observable<String>.create { observer in
             observer.onNext("1")
             observer.onNext("2")
@@ -80,12 +76,11 @@ extension OperatorsListVC{
         sequenceThatErrors
             .retry()
             .subscribe { print($0) }
-            .disposed(by: disposeBag)
+            .disposed(by: GlobalDisposeBag)
     }
-    //与 retry 行为一样，多了一个最多尝试次数的限制
+    //与 retry 行为一样，只是多了一个最多尝试次数的限制
     func retryMaxAttemptCount(){
         logFunc(#function)
-        let disposeBag = DisposeBag()
         let sequenceThatErrors = Observable<String>.create { observer in
             observer.onNext("1")
             observer.onNext("2")
@@ -102,7 +97,7 @@ extension OperatorsListVC{
         sequenceThatErrors
             .retry(3)
             .subscribe { print($0) }
-            .disposed(by: disposeBag)
+            .disposed(by: GlobalDisposeBag)
     }
     //序列失败时，等待'通知序列'发射元素，一旦'通知序列'发射数据，原始序列则会进行retry操作，如果通知序列正常或异常终止，则原始序列同样正常或异常终止。
     func retryWhen(){
@@ -127,10 +122,11 @@ extension OperatorsListVC{
             .retryWhen({ (errorSeq:Observable<Error>) -> Observable<String> in
                 return notifyer
             })
-            .subscribe { print($0) }
+            .subscribe { print("接收到数据: ",$0," time: ",Date()) }
             .disposed(by: GlobalDisposeBag)
         
         delay(2) {
+            print("通知序列发射元素, time: ", Date())
             notifyer.onNext("a")
             //notifyer.onCompleted() //以 Completed 事件结束
             //notifyer.onError("Some Error") // 以 error 事件结束

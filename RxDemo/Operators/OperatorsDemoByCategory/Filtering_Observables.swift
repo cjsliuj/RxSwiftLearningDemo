@@ -11,7 +11,7 @@ import RxCocoa
 import RxSwift
 //这些操作符用于过滤和选择序列发射的数据
 extension OperatorsListVC{
-    //过滤掉不满足条件的数据
+    //过滤掉序列中不满足条件的数据
     func filter(){
         logFunc(#function)
         //过滤奇数
@@ -22,10 +22,13 @@ extension OperatorsListVC{
             .subscribe{ print($0) }
             .disposed(by: GlobalDisposeBag)
     }
-    //忽略所有元素，接受序列终止通知。
+    //忽略所有元素，正常终止。
     func ignoreElements(){
         logFunc(#function)
-        Observable<Int>.of(1,2).ignoreElements().subscribe{print($0)}.disposed(by: GlobalDisposeBag)
+        Observable<Int>.of(1,2)
+            .ignoreElements()
+            .subscribe{print($0)}
+            .disposed(by: GlobalDisposeBag)
     }
     //过滤掉与上一条数据相同的数据
     func distinctUntilChanged(){
@@ -59,7 +62,7 @@ extension OperatorsListVC{
      */
     func takeLast(){
         logFunc(#function)
-        Observable<Int>.create { (observer) -> Disposable in
+        let seq = Observable<Int>.create { (observer) -> Disposable in
             var i = 1
             Timer.scheduledTimer(withTimeInterval: 1, repeats: true, block: { (timer) in
                 if i <= 4{
@@ -74,7 +77,8 @@ extension OperatorsListVC{
             }).fire()
             return Disposables.create()
             }.takeLast(3)
-            .subscribe{print($0)}
+        print("订阅 time: ", Date())
+        seq.subscribe{print("收到事件:",$0," time: ",Date())}
             .disposed(by: GlobalDisposeBag)
     }
     //序列一直发射数据直到某条数据不满足指定条件，然后序列正常终止。
@@ -106,7 +110,7 @@ extension OperatorsListVC{
         sourceSequence.onNext("5")
         sourceSequence.onNext("6")
     }
-    //参照序列异常终止则原始序列也异常终止
+    //参照序列异常终止则最终序列也异常终止
     func takeUntilWithRefSeqError(){
         logFunc(#function)
         let sourceSequence = PublishSubject<String>()
@@ -121,13 +125,13 @@ extension OperatorsListVC{
         sourceSequence.onNext("2")
         sourceSequence.onNext("3")
         print("参照序列异常终止")
-        referenceSequence.onError("Some Error")
+        referenceSequence.onError(ExampleError)
         
         sourceSequence.onNext("4")
         sourceSequence.onNext("5")
         sourceSequence.onNext("6")
     }
-    //参照序列正常终止,则原始序列不会终止。
+    //参照序列正常终止,原始序列并不会终止。
     func takeUntilWithRefSeqComplete(){
         logFunc(#function)
         let sourceSequence = PublishSubject<String>()
@@ -141,6 +145,7 @@ extension OperatorsListVC{
         sourceSequence.onNext("1")
         sourceSequence.onNext("2")
         sourceSequence.onNext("3")
+        referenceSequence.onNext("a")
         print("参照序列正常终止")
         referenceSequence.onCompleted()
         
@@ -156,13 +161,13 @@ extension OperatorsListVC{
             .subscribe{ print($0) }
             .disposed(by: GlobalDisposeBag)
     }
-    //发射原始N秒后产生的数据，
+    //序列在N秒后开始发射数据，
     func skipDuration(){
         logFunc(#function)
         Observable<Int>.create { (observer) -> Disposable in
             var i = 1
             Timer.scheduledTimer(withTimeInterval: 1, repeats: true, block: { (timer) in
-                print("第 \(i) 秒发射数据:\(i)")
+                print("原始序列发射数据: ",i,"time: ",Date())
                 if i <= 5{
                     observer.onNext(i)
                 }else{
@@ -174,7 +179,7 @@ extension OperatorsListVC{
             return Disposables.create()
             }
             .skip(2.5, scheduler: MainScheduler.instance)
-            .subscribe{print("观察者接收到:",$0)}
+            .subscribe{print("接收到数据: ",$0," time: ",Date())}
             .disposed(by: GlobalDisposeBag)
     }
     
@@ -251,14 +256,14 @@ extension OperatorsListVC{
     }
     /*
      该操作符接收一个用于‘采样’的序列，采样序列会不定时采样（RxSwfit中的实现是当采样序列发射数据时，则对原始序列进行采样），采得的数据会通过最终序列发射。
-     //原始序列或采样序列终止，则最终序列终止。
+     原始序列或采样序列终止，则最终序列终止。
      */
     func sample(){
         logFunc(#function)
         let sourceSeq = Observable<Int>.create { (observer) -> Disposable in
             var i = 1
             Timer.scheduledTimer(withTimeInterval: 1, repeats: true, block: { (timer) in
-                if i <= 10{
+                if i <= 5{
                     print("原始序列发射数据:\(i) [第 \(i) 秒]")
                     observer.onNext(i)
                 }else{
@@ -285,7 +290,7 @@ extension OperatorsListVC{
             })
             return Disposables.create()
         }
-        sourceSeq.sample(samplerSeq).subscribe{print("观察者接收:",$0)}.disposed(by: GlobalDisposeBag)
+        sourceSeq.sample(samplerSeq).subscribe{print("订阅者接收到数据:",$0)}.disposed(by: GlobalDisposeBag)
     }
     
     /*

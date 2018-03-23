@@ -24,16 +24,18 @@ extension OperatorsListVC{
         let seq = Observable<Int>.of(1,2,3).publish()
         seq.subscribe{ print($0) }.disposed(by: DisposeBag())
     }
+    
+    //使序列开始发射数据
     func connect(){
         logFunc(#function)
         let seq = Observable<Int>.interval(1, scheduler: MainScheduler.instance).publish()
         seq.subscribe{ print("观察者1:",$0) }.disposed(by: GlobalDisposeBag)
         seq.connect().disposed(by: GlobalDisposeBag)
-        //后续订阅并不会创建新的发射序列
+        //后续的订阅会 shares single subscription
         delay(3) {
             seq.subscribe{ print("观察者2:",$0) }.disposed(by: GlobalDisposeBag)
         }
-        //后续订阅并不会创建新的发射序列
+        //后续的订阅会 shares single subscription
         delay(5) {
             seq.subscribe{ print("观察者3:",$0) }.disposed(by: GlobalDisposeBag)
         }
@@ -52,21 +54,21 @@ extension OperatorsListVC{
         }
     }
     
-    //观察者订阅时，序列会将先前发射过的最近N个数据再次发射给观察者
+    //观察者订阅时，序列会将先前发射过的最近N个数据先发射给观察者
     func replay(){
         logFunc(#function)
         let seq = Observable<Int>.interval(1, scheduler: MainScheduler.instance).replay(2)
-        seq.subscribe{ print("订阅1:",$0) }.disposed(by: GlobalDisposeBag)
+        seq.subscribe{ print("订阅者1 接收到数据:",$0) }.disposed(by: GlobalDisposeBag)
         seq.connect().disposed(by: GlobalDisposeBag)
         delay(3) {
-            seq.subscribe{ print("订阅2:",$0) }.disposed(by: GlobalDisposeBag)
+            seq.subscribe{ print("订阅者2 接收到数据:",$0) }.disposed(by: GlobalDisposeBag)
         }
         //会接收到订阅前发射的最近3个元素
         delay(5) {
-            seq.subscribe{ print("订阅3:",$0) }.disposed(by: GlobalDisposeBag)
+            seq.subscribe{ print("订阅者3 接收到数据",$0) }.disposed(by: GlobalDisposeBag)
         }
     }
-    //观察者订阅时，序列会将先前发射过的数据全部再次发射给观察者
+    //观察者订阅时，序列会将先前发射过的数据全部先发射给观察者
     func replayAll(){
         logFunc(#function)
         let seq = Observable<Int>.interval(1, scheduler: MainScheduler.instance).replayAll()

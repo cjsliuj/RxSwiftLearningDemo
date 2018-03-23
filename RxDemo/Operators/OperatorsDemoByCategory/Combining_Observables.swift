@@ -19,14 +19,13 @@ extension OperatorsListVC{
      */
     func startWith(){
         logFunc(#function)
-        let disposeBag = DisposeBag()
         let ob = Observable.of("a", "b", "c", "d")
             .startWith("1")
             .startWith("2")
             .startWith("3", "4", "5")
         
         ob.subscribe(onNext: { print($0) })
-            .disposed(by: disposeBag)
+            .disposed(by: GlobalDisposeBag)
     }
     /*
      合并多个序列，当被合并的序列中有任何一个序列发射数据时，该数据则会通过'最终序列'发射出去。
@@ -38,7 +37,6 @@ extension OperatorsListVC{
         let disposeBag = DisposeBag()
         let subject1 = PublishSubject<String>()
         let subject2 = PublishSubject<String>()
-        // 这里调用的是 public static func merge(_ sources: [Observable<E>]) -> Observable<E> 方法。
         Observable<String>.merge([subject1,subject2])
             .subscribe(onNext: { print($0) })
             .disposed(by: disposeBag)
@@ -57,20 +55,19 @@ extension OperatorsListVC{
      */
     func mergeWithError(){
         logFunc(#function)
-        let disposeBag = DisposeBag()
         let subject1 = PublishSubject<String>()
         let subject2 = PublishSubject<String>()
         Observable.of(subject1, subject2)
             .merge()
             .subscribe {print($0)}
-            .disposed(by: disposeBag)
+            .disposed(by: GlobalDisposeBag)
         subject1.onNext("🅰️")
         subject1.onNext("🅱️")
         
         subject2.onNext("①")
         subject2.onNext("②")
         
-        subject1.onError(NSError(domain: "testError", code: 1, userInfo: nil))
+        subject1.onError(ExampleError)
         
         subject2.onNext("③")
     }
@@ -79,13 +76,13 @@ extension OperatorsListVC{
      */
     func mergeWithCompleted(){
         logFunc(#function)
-        let disposeBag = DisposeBag()
+ 
         let subject1 = PublishSubject<String>()
         let subject2 = PublishSubject<String>()
         Observable.of(subject1, subject2)
             .merge()
             .subscribe {print($0)}
-            .disposed(by: disposeBag)
+            .disposed(by: GlobalDisposeBag)
         subject1.onNext("🅰️")
         subject1.onNext("🅱️")
         
@@ -114,8 +111,7 @@ extension OperatorsListVC{
      */
     func zip(){
         logFunc(#function)
-        let disposeBag = DisposeBag()
-        
+   
         let stringSubject = PublishSubject<String>()
         let intSubject = PublishSubject<Int>()
         
@@ -123,7 +119,7 @@ extension OperatorsListVC{
             "\(stringElement) \(intElement)"
             }
             .subscribe{ print($0) }
-            .disposed(by: disposeBag)
+            .disposed(by: GlobalDisposeBag)
         
         stringSubject.onNext("🅰️")
         stringSubject.onNext("🅱️")
@@ -140,8 +136,7 @@ extension OperatorsListVC{
      */
     func zipWithCompleted(){
         logFunc(#function)
-        let disposeBag = DisposeBag()
-        
+ 
         let stringSubject = PublishSubject<String>()
         let intSubject = PublishSubject<Int>()
         
@@ -149,7 +144,7 @@ extension OperatorsListVC{
             "\(stringElement) \(intElement)"
             }
             .subscribe{ print($0) }
-            .disposed(by: disposeBag)
+            .disposed(by: GlobalDisposeBag)
         
         stringSubject.onNext("a")
         stringSubject.onNext("b")
@@ -168,8 +163,7 @@ extension OperatorsListVC{
      */
     func zipWithError(){
         logFunc(#function)
-        let disposeBag = DisposeBag()
-        
+ 
         let stringSubject = PublishSubject<String>()
         let intSubject = PublishSubject<Int>()
         
@@ -177,7 +171,7 @@ extension OperatorsListVC{
             "\(stringElement) \(intElement)"
             }
             .subscribe{ print($0) }
-            .disposed(by: disposeBag)
+            .disposed(by: GlobalDisposeBag)
         
         stringSubject.onNext("a")
         stringSubject.onNext("b")
@@ -186,18 +180,17 @@ extension OperatorsListVC{
         
         stringSubject.onNext("c")
         stringSubject.onNext("d")
-        stringSubject.onError("Some Error")
+        stringSubject.onError(ExampleError)
         intSubject.onNext(3)
         intSubject.onCompleted()
     }
     /*
      与zip有点类似，不同的是，当被 combine 的任何一个序列发射数据时，combineLatest 会把所有序列中的最近一次发射的数据'合并'为一个数据，然后在'最终序列'中发射出去。
-     正常终止 和 异常终止的行为与 zip 一样。
+     其正常终止 和 异常终止的行为与 zip 一样。
      http://reactivex.io/documentation/operators/combinelatest.html
      */
     func combineLatest(){
         logFunc(#function)
-        let disposeBag = DisposeBag()
         let stringSubject = PublishSubject<String>()
         let intSubject = PublishSubject<Int>()
         
@@ -205,7 +198,7 @@ extension OperatorsListVC{
             "\(stringElement) \(intElement)"
             }
             .subscribe(onNext: { print($0) })
-            .disposed(by: disposeBag)
+            .disposed(by: GlobalDisposeBag)
         
         stringSubject.onNext("🅰️")
         
@@ -221,14 +214,14 @@ extension OperatorsListVC{
      */
     func switchLatest(){
         logFunc(#function)
-        let disposeBag = DisposeBag()
+ 
         let subSeq1 = PublishSubject<String>.init()
         let subSeq2 = PublishSubject<String>.init()
         let  sourceSeq = PublishSubject<PublishSubject<String>>.init()
         
         sourceSeq.switchLatest()
             .subscribe{print($0)}
-            .disposed(by: disposeBag)
+            .disposed(by: GlobalDisposeBag)
         
         sourceSeq.onNext(subSeq1)
         subSeq1.onNext("1a")
@@ -245,18 +238,17 @@ extension OperatorsListVC{
         
     }
     /*
-     只有原始序列正常终止，其他序列不终止， 最终序列并不会终止。
+     只要原始序列正常终止，其他序列不终止， 最终序列并不会终止。
      */
     func switchLatest_only_sourceSeq_completed(){
         logFunc(#function)
-        let disposeBag = DisposeBag()
         let subSeq1 = PublishSubject<String>.init()
         let subSeq2 = PublishSubject<String>.init()
         let sourceSeq = PublishSubject<PublishSubject<String>>.init()
         
         sourceSeq.switchLatest()
             .subscribe{print($0)}
-            .disposed(by: disposeBag)
+            .disposed(by: GlobalDisposeBag)
         
         sourceSeq.onNext(subSeq1)
         subSeq1.onNext("1a")
@@ -275,14 +267,13 @@ extension OperatorsListVC{
      */
     func switchLatest_completed_all(){
         logFunc(#function)
-        let disposeBag = DisposeBag()
         let subSeq1 = PublishSubject<String>.init()
         let subSeq2 = PublishSubject<String>.init()
         let sourceSeq = PublishSubject<PublishSubject<String>>.init()
         
         sourceSeq.switchLatest()
             .subscribe{print($0)}
-            .disposed(by: disposeBag)
+            .disposed(by: GlobalDisposeBag)
         
         sourceSeq.onNext(subSeq1)
         subSeq1.onNext("1a")
@@ -303,14 +294,13 @@ extension OperatorsListVC{
      */
     func switchLatest_error(){
         logFunc(#function)
-        let disposeBag = DisposeBag()
         let subSeq1 = PublishSubject<String>.init()
         let subSeq2 = PublishSubject<String>.init()
         let sourceSeq = PublishSubject<PublishSubject<String>>.init()
         
         sourceSeq.switchLatest()
             .subscribe{print($0)}
-            .disposed(by: disposeBag)
+            .disposed(by: GlobalDisposeBag)
         
         sourceSeq.onNext(subSeq1)
         subSeq1.onNext("1a")
@@ -320,8 +310,8 @@ extension OperatorsListVC{
         
         subSeq2.onNext("2a")
         subSeq2.onNext("2b")
-        //subSeq2.onError("Some Error")//订阅序列异常终止的场景
-        sourceSeq.onError("Some Error")
+        //subSeq2.onError(ExampleError)//订阅序列异常终止的场景，与 sourceSeq异常终止的效果一样。去除注释运行可以查看效果。
+        sourceSeq.onError(ExampleError)
     }
 }
 
