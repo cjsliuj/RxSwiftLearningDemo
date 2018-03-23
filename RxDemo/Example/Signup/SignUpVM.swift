@@ -2,7 +2,7 @@
 //  SignUpVM.swift
 //  RxDemo
 //
-//  Created by 刘杰 on 2018/3/19.
+//  Created by jerry on 2018/3/19.
 //  Copyright © 2018年 jerry. All rights reserved.
 //
 

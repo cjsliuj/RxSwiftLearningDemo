@@ -2,7 +2,7 @@
 //  main.swift
 //  MacAppTest
 //
-//  Created by 刘杰 on 2017/11/3.
+//  Created by jerry on 2017/11/3.
 //  Copyright © 2017年 jerry. All rights reserved.
 //
 
