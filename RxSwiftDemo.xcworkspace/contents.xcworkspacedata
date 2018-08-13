@@ -2,7 +2,7 @@
 <Workspace
    version = "1.0">
    <FileRef
-      location = "group:/Users/jerry/Desktop/github-prjs/RxSwiftLearningDemo/RxSwiftDemo.xcodeproj">
+      location = "group:RxSwiftDemo.xcodeproj">
    </FileRef>
    <FileRef
       location = "group:Pods/Pods.xcodeproj">
